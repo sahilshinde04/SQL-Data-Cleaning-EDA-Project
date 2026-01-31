@@ -1,4 +1,4 @@
--- Exploratory Data Analysis (EDA) using SQL
+--I Performe Exploratory Data Analysis (EDA) using SQL
 -- Objective: Explore the cleaned layoffs dataset to identify
 -- trends, patterns, and insights useful for business understanding.
 
@@ -8,27 +8,24 @@ FROM world_layoffs.layoffs_staging2;
 
 
 -- Finding the maximum number of employees laid off
--- in a single layoff event.
 SELECT MAX(total_laid_off)
 FROM world_layoffs.layoffs_staging2;
 
 
 
 -- Analyzing the range of layoff percentages
--- to understand the severity of layoffs.
 SELECT MAX(percentage_laid_off),  MIN(percentage_laid_off)
 FROM world_layoffs.layoffs_staging2
 WHERE  percentage_laid_off IS NOT NULL;
 
 -- Identifying companies where 100% of employees
--- were laid off, indicating complete shutdowns.
+
 SELECT *
 FROM world_layoffs.layoffs_staging2
 WHERE  percentage_laid_off = 1;
 
 
--- Sorting fully shut-down companies by funding raised
--- to analyze whether highly funded startups were also affected
+
 
 SELECT *
 FROM world_layoffs.layoffs_staging2
@@ -49,7 +46,6 @@ LIMIT 5;
 
 
 -- Identifying companies with the highest total
--- layoffs across the entire dataset
 
 SELECT company, SUM(total_laid_off)
 FROM world_layoffs.layoffs_staging2
@@ -59,8 +55,7 @@ LIMIT 10;
 
 
 
--- Analyzing layoffs by location to identify
--- cities most affected.
+
 SELECT location, SUM(total_laid_off)
 FROM world_layoffs.layoffs_staging2
 GROUP BY location
@@ -95,11 +90,8 @@ ORDER BY 2 DESC;
 
 
 
-
-
-
 -- Identifying top 3 companies with highest layoffs
--- for each year using CTEs and window functions.
+-- for using CTEs and window functions.
 
 WITH Company_Year AS 
 (
@@ -119,14 +111,13 @@ ORDER BY years ASC, total_laid_off DESC;
 
 
 
-
 -- Rolling Total of Layoffs Per Month
 SELECT SUBSTRING(date,1,7) as dates, SUM(total_laid_off) AS total_laid_off
 FROM layoffs_staging2
 GROUP BY dates
 ORDER BY dates ASC;
 
--- Calculating cumulative (rolling) layoffs over time
+
 -- to visualize overall growth in layoffs.
 WITH DATE_CTE AS 
 (
@@ -138,54 +129,6 @@ ORDER BY dates ASC
 SELECT dates, SUM(total_laid_off) OVER (ORDER BY dates ASC) as rolling_total_layoffs
 FROM DATE_CTE
 ORDER BY dates ASC;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
