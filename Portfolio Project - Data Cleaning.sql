@@ -1,15 +1,12 @@
 -- SQL Data Cleaning Project
 -- https://www.kaggle.com/datasets/swaptr/layoffs-2022
 -- Objective: Clean raw layoffs data to make it accurate, consistent,
--- and ready for analysis and business insights.
--- Tools Used: MySQL
+-- ready for analysis and business insights.
 
 SELECT * 
 FROM world_layoffs.layoffs;
 
-
--- Creating a staging table to work safely on data cleaning.
--- This ensures the original raw data remains unchanged
+--Create a backup Table 
 CREATE TABLE world_layoffs.layoffs_staging 
 LIKE world_layoffs.layoffs;
 
@@ -59,9 +56,8 @@ FROM world_layoffs.layoffs_staging
 WHERE 
 	row_num > 1;
 
--- these are the ones we want to delete where the row number is > 1 or 2or greater essentially
+--  delete where the row number is > 1 or 2or greater essentile
 
--- now you may want to write it like this:
 WITH DELETE_CTE AS 
 (
 SELECT *
@@ -90,8 +86,7 @@ WHERE (company, location, industry, total_laid_off, percentage_laid_off, `date`,
 	FROM DELETE_CTE
 ) AND row_num > 1;
 
--- Is to create a new column and add those row numbers in. Then delete where row numbers are over 2, then delete that column
--- so let's do it!!
+--create a new column and add those row numbers in. Then delete where row numbers are over 2, then delete that column
 
 ALTER TABLE world_layoffs.layoffs_staging ADD row_num INT;
 
@@ -156,7 +151,7 @@ WHERE row_num >= 2;
 SELECT * 
 FROM world_layoffs.layoffs_staging2;
 
--- if we look at industry it looks like we have some null and empty rows, let's take a look at these
+-- industry it looks like we have some null and empty rows
 SELECT DISTINCT industry
 FROM world_layoffs.layoffs_staging2
 ORDER BY industry;
@@ -168,23 +163,24 @@ WHERE industry IS NULL
 OR industry = ''
 ORDER BY industry;
 
--- let's take a look at these
+-- lets check this
 SELECT *
 FROM world_layoffs.layoffs_staging2
 WHERE company LIKE 'Bally%';
--- nothing wrong here
+
+
 SELECT *
 FROM world_layoffs.layoffs_staging2
 WHERE company LIKE 'airbnb%';
 
 -- Converting blank industry values to NULL
--- because NULLs are easier to handle in SQL analysis
+-- NULLs are easier to handle in SQL analysis
 
 UPDATE world_layoffs.layoffs_staging2
 SET industry = NULL
 WHERE industry = '';
 
--- now if we check those are all null
+
 
 SELECT *
 FROM world_layoffs.layoffs_staging2
@@ -202,7 +198,7 @@ SET t1.industry = t2.industry
 WHERE t1.industry IS NULL
 AND t2.industry IS NOT NULL;
 
--- and if we check it looks like Bally's was the only one without a populated row to populate this null values
+
 SELECT *
 FROM world_layoffs.layoffs_staging2
 WHERE industry IS NULL 
@@ -211,14 +207,14 @@ ORDER BY industry;
 
 -- ---------------------------------------------------
 
--- I also noticed the Crypto has multiple different variations
+-- i found idustry colume Crypto and Cryptocurrncy
 -- let's say all to Crypto
 SELECT DISTINCT industry
 FROM world_layoffs.layoffs_staging2
 ORDER BY industry;
 
 -- Standardizing different variations of Crypto industry
--- to avoid incorrect grouping during analysis.
+
 
 UPDATE layoffs_staging2
 SET industry = 'Crypto'
@@ -229,24 +225,23 @@ SELECT DISTINCT industry
 FROM world_layoffs.layoffs_staging2
 ORDER BY industry;
 
--- --------------------------------------------------
--- we also need to look at 
+-- ------------------------------------------------
 
 SELECT *
 FROM world_layoffs.layoffs_staging2;
 
--- everything looks good except apparently we have some "United States" and some "United States." with a period at the end. Let's standardize this.
+-- "United States" and some "United States.".Let's standardize this.
 SELECT DISTINCT country
 FROM world_layoffs.layoffs_staging2
 ORDER BY country;
 
--- Removing trailing punctuation from country names
--- to maintain consistency (e.g., 'United States.')
+-- Removing trailing punctuation from country names.
 
 UPDATE layoffs_staging2
 SET country = TRIM(TRAILING '.' FROM country);
 
--- now if we run this again it is fixed
+
+
 SELECT DISTINCT country
 FROM world_layoffs.layoffs_staging2
 ORDER BY country;
@@ -257,12 +252,12 @@ SELECT *
 FROM world_layoffs.layoffs_staging2;
 
 -- Converting date from text format to DATE datatype
--- to enable time-based analysis such as yearly and monthly trends.
+
 
 UPDATE layoffs_staging2
 SET `date` = STR_TO_DATE(`date`, '%m/%d/%Y');
 
--- now we can convert the data type properly
+
 ALTER TABLE layoffs_staging2
 MODIFY COLUMN `date` DATE;
 
@@ -276,8 +271,6 @@ FROM world_layoffs.layoffs_staging2;
 
 -- 3. Look at Null Values
 
--- Reviewing NULL values in total_laid_off, percentage_laid_off and funds_raised_millions columns.
--- to avoid incorrect assumptions and to ensure accurate
 -- calculations during the EDA phase.
 
 
@@ -294,7 +287,6 @@ WHERE total_laid_off IS NULL
 AND percentage_laid_off IS NULL;
 
 -- Removing records where both total_laid_off and
--- percentage_laid_off are NULL as they provide no useful insight.
 
 DELETE FROM world_layoffs.layoffs_staging2
 WHERE total_laid_off IS NULL
@@ -304,7 +296,6 @@ SELECT *
 FROM world_layoffs.layoffs_staging2;
 
 -- Removing helper column used only for duplicate detection
--- to keep the final dataset clean.
 
 ALTER TABLE layoffs_staging2
 DROP COLUMN row_num;
